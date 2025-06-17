@@ -26,7 +26,7 @@
       overflow: hidden;
       display: flex; /* Use flexbox */
       flex-direction: column; /* Stack elements vertically */
-      justify-content: center;
+      justify-content: center; /* Center content vertically */
       align-items: center;
       background: #111;
       perspective: 1000px;
@@ -105,6 +105,27 @@
       box-shadow: 0 0 25px rgba(255, 255, 255, 0.9); /* More intense hover shadow */
     }
 
+    /* Blast animation for the landed item */
+    @keyframes foodBlast {
+      0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1) rotate(5deg); /* Slightly larger and rotated */
+        opacity: 0.9;
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .food-blast {
+      animation: foodBlast 0.5s ease-out; /* Apply the blast animation */
+    }
+
+
     #drag-container p {
       font-family: 'Inter', sans-serif;
       position: absolute;
@@ -153,15 +174,19 @@
     }
 
     #roulette-button {
-        padding: 18px 35px; /* Larger padding */
-        font-size: 1.6em; /* Slightly larger font */
+        width: 100px; /* Fixed width for circular button */
+        height: 100px; /* Fixed height for circular button */
+        padding: 0; /* Remove padding for precise sizing */
+        font-size: 1.8em; /* Larger font for "Spin" */
         font-weight: bold;
+        line-height: 100px; /* Vertically center text */
+        text-align: center; /* Horizontally center text */
         cursor: pointer;
-        margin-top: 40px; /* More space from the carousel */
+        margin-top: 50px; /* Lift the button further from the carousel */
         background: linear-gradient(145deg, #4CAF50, #45a049); /* Gradient background */
         color: white;
         border: none;
-        border-radius: 12px; /* More rounded corners */
+        border-radius: 50%; /* Make it circular */
         box-shadow: 0 6px 12px rgba(0,0,0,0.3), inset 0 -3px 5px rgba(0,0,0,0.2); /* Deeper shadow */
         transition: all 0.3s ease;
         z-index: 2;
@@ -172,7 +197,7 @@
 
     #roulette-button:hover {
         background: linear-gradient(145deg, #45a049, #367c39);
-        transform: translateY(-2px); /* Slight lift effect */
+        transform: translateY(-3px); /* Slight lift effect */
         box-shadow: 0 8px 16px rgba(0,0,0,0.4), inset 0 -4px 6px rgba(0,0,0,0.2);
     }
 
@@ -207,9 +232,11 @@
       }
 
       #roulette-button {
-        padding: 12px 25px;
-        font-size: 1.3em;
-        margin-top: 30px;
+        width: 90px; /* Slightly smaller on tablets */
+        height: 90px;
+        line-height: 90px;
+        font-size: 1.6em;
+        margin-top: 40px; /* Adjusted margin for tablets */
       }
 
       .custom-ar-button {
@@ -231,9 +258,11 @@
       }
 
       #roulette-button {
-        font-size: 1.1em;
-        padding: 10px 20px;
-        margin-top: 20px;
+        width: 80px; /* Smaller on phones */
+        height: 80px;
+        line-height: 80px;
+        font-size: 1.4em;
+        margin-top: 30px; /* Adjusted margin for phones */
       }
 
       #drag-container p {
@@ -266,8 +295,8 @@
       </model-viewer>
 
       <model-viewer
-        src="Pizza.glb"
-        ios-src="Pizza.usdz"
+        src="Sushi.glb"
+        ios-src="Sushi.usdz"
         alt="Classic Pepperoni Pizza"
         ar
         ar-modes="scene-viewer quick-look webxr"
@@ -282,8 +311,8 @@
       </model-viewer>
 
       <model-viewer
-        src="Burger.glb"
-        ios-src="Burger.usdz"
+        src="Sushi.glb"
+        ios-src="Sushi.usdz"
         alt="Juicy Burger"
         ar
         ar-modes="scene-viewer quick-look webxr"
@@ -298,8 +327,8 @@
       </model-viewer>
 
       <model-viewer
-        src="Taco.glb"
-        ios-src="Taco.usdz"
+        src="Sushi.glb"
+        ios-src="Sushi.usdz"
         alt="Crispy Taco"
         ar
         ar-modes="scene-viewer quick-look webxr"
@@ -314,8 +343,8 @@
       </model-viewer>
 
       <model-viewer
-        src="Donut.glb"
-        ios-src="Donut.usdz"
+        src="Sushi.glb"
+        ios-src="Sushi.usdz"
         alt="Sweet Glazed Donut"
         ar
         ar-modes="scene-viewer quick-look webxr"
@@ -334,17 +363,18 @@
     <div id="ground"></div>
   </div>
 
-  <button id="roulette-button">Spin the Roulette!</button>
+  <button id="roulette-button">Spin</button>
 
   <script>
     // main.js content - START
 
     // Global variables (you can change these)
-    var radius = 180; // How big of the radius - DECREASED for closer view
+    // Adjust radius and image dimensions based on screen width for mobile responsiveness
+    var radius = window.innerWidth <= 480 ? 120 : 180; // Smaller radius for phones
     var autoRotate = true; // Auto rotate or not
     var rotateSpeed = -60; // Unit: seconds/360 degrees (negative for counter-clockwise)
-    var imgWidth = 180; // Width of 3D models (unit: px) - INCREASED for bigger size
-    var imgHeight = 250; // Height of 3D models (unit: px) - INCREASED for bigger size
+    var imgWidth = window.innerWidth <= 480 ? 150 : 180; // Smaller width for phones
+    var imgHeight = window.innerWidth <= 480 ? 200 : 250; // Smaller height for phones
 
     // Link of background music - set 'null' if you don't want to play background music
     var bgMusicURL = null;
@@ -466,7 +496,7 @@
         document.onpointerdown = null; // Temporarily disable manual drag
 
         // Explicitly set tY to initial value to prevent sideways tilt during spin
-        tY = 10; // Or 0 if you want it perfectly upright for the spin
+        tY = 10; // Maintains initial slight tilt
 
         // Calculate a random target item
         var targetIndex = Math.floor(Math.random() * aEle.length);
@@ -487,6 +517,15 @@
           odrag.removeEventListener('transitionend', handler); // Remove listener to prevent multiple firings
           rouletteButton.disabled = false; // Re-enable button
           odrag.style.transition = 'none'; // Remove transition for normal drag behavior
+
+          // Add blast animation to the landed item
+          const landedItem = aEle[targetIndex];
+          if (landedItem) {
+            landedItem.classList.add('food-blast');
+            setTimeout(() => {
+              landedItem.classList.remove('food-blast');
+            }, 500); // Animation duration is 0.5s
+          }
 
           // Re-add manual drag functionality
           document.onpointerdown = function (e) {
