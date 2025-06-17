@@ -39,6 +39,7 @@
       margin-bottom: 20px;
       text-align: center;
       color: #fff; /* Ensure visibility on dark background */
+      /* position: absolute; top: 5%; left: 50%; transform: translateX(-50%); z-index: 1; */ /* Removed absolute positioning */
     }
 
     #drag-container, #spin-container {
@@ -106,33 +107,40 @@
       background: -webkit-radial-gradient(center center, farthest-side , #9993, transparent);
     }
 
-    /* Round Roulette Button Styling */
+    .custom-ar-button {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 80px;
+      height: 80px;
+      border: none;
+      border-radius: 50%;
+      background-color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      background-image: url('https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fmathematics-science-ui-ux%2F512%2Ficonset053_line_512-04-512.png&f=1&nofb=1&ipt=3c98ea47503b6f95bae243bb3bfafd2111317ac0ab4e890ebbb20cc607b321ca');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 60% 60%;
+      cursor: pointer;
+      z-index: 10;
+    }
+
     #roulette-button {
-        padding: 0; /* Remove padding to help with perfect circle */
-        width: 100px; /* Set fixed width */
-        height: 100px; /* Set fixed height to match width */
-        border-radius: 50%; /* Make it round */
-        font-size: 1.2em; /* Adjusted font size for a round button */
+        padding: 15px 30px;
+        font-size: 1.5em;
         cursor: pointer;
         margin-top: 20px; /* Space from the carousel */
-        background-color: #FF5722; /* Deep Orange color */
+        background-color: #4CAF50;
         color: white;
         border: none;
+        border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        transition: background-color 0.3s ease, transform 0.1s ease-out; /* Added transform for press effect */
-        display: flex; /* Use flexbox to center text */
-        justify-content: center;
-        align-items: center;
-        text-align: center; /* Ensure text is centered */
-        font-weight: bold;
+        transition: background-color 0.3s ease;
+        z-index: 2; /* Ensure it's above other elements if needed */
     }
 
     #roulette-button:hover {
-        background-color: #E64A19; /* Slightly darker orange on hover */
-    }
-
-    #roulette-button:active {
-        transform: scale(0.98); /* Slight press effect */
+        background-color: #45a049;
     }
     /* style.css content - END */
   </style>
@@ -199,7 +207,7 @@
     <div id="ground"></div>
   </div>
 
-  <button id="roulette-button">SPIN</button>
+  <button id="roulette-button">Spin the Roulette!</button>
 
   <script>
     // main.js content - START
@@ -214,12 +222,12 @@
     var radius = 180; // how big of the radius - DECREASED for closer view
     var autoRotate = true; // auto rotate or not
     var rotateSpeed = -60; // unit: seconds/360 degrees
-    var imgWidth = 180; // width of images (unit: px) - INCREASEED for bigger size
+    var imgWidth = 180; // width of images (unit: px) - INCREASED for bigger size
     var imgHeight = 250; // height of images (unit: px) - INCREASED for bigger size
 
     // Link of background music - set 'null' if you dont want to play background music
-    var bgMusicURL = null;
-    var bgMusicControls = false;
+    var bgMusicURL = null; // Set to null to remove background music
+    var bgMusicControls = false; // Set to false, not relevant if bgMusicURL is null
 
     /*
          NOTE:
@@ -236,6 +244,7 @@
 
     var odrag = document.getElementById('drag-container');
     var ospin = document.getElementById('spin-container');
+    // MODIFIED: Target model-viewer elements instead of img and video
     var aEle = ospin.getElementsByTagName('model-viewer');
 
     // Size of images
@@ -256,15 +265,17 @@
     }
 
     function applyTranform(obj) {
-      // Constrain the angle of camera (between -60 and 60) for vertical drag
-      if(tY > 60) tY = 60;
-      if(tY < -60) tY = -60;
+      // Constrain the angle of camera (between 0 and 180)
+      // MODIFIED: Limit tY to prevent upside down
+      if(tY > 60) tY = 60; // Max rotation downwards
+      if(tY < -60) tY = -60; // Max rotation upwards
 
+      // Apply the angle
       obj.style.transform = "rotateX(" + (-tY) + "deg) rotateY(" + (tX) + "deg)";
     }
 
     function playSpin(yes) {
-      if (yes && autoRotate) { // Ensure autoRotate is true to play spin
+      if (yes) {
         var animationName = (rotateSpeed > 0 ? 'spin' : 'spinRevert');
         ospin.style.animation = `${animationName} ${Math.abs(rotateSpeed)}s infinite linear`;
       } else {
@@ -277,13 +288,14 @@
         tX = 0,
         tY = 10;
 
-    // auto spin on load
-    playSpin(true);
+    // auto spin
+    if (autoRotate) {
+      playSpin(true);
+    }
 
-    // setup events for drag interaction
+    // setup events
     document.onpointerdown = function (e) {
-      clearInterval(odrag.timer); // Clear any existing decay timer
-      playSpin(false); // Pause auto-spin during manual drag
+      clearInterval(odrag.timer);
       e = e || window.event;
       var sX = e.clientX,
           sY = e.clientY;
@@ -308,14 +320,15 @@
           tX += desX * 0.1;
           tY += desY * 0.1;
           applyTranform(odrag);
+          playSpin(false); // Pause auto-spin during manual adjustment decay
           if (Math.abs(desX) < 0.5 && Math.abs(desY) < 0.5) {
             clearInterval(odrag.timer);
-            if (autoRotate) { // Resume auto-spin if it was enabled
-              playSpin(true);
+            if (autoRotate) {
+              playSpin(true); // Resume auto-spin after manual adjustment decay
             }
           }
         }, 17);
-        this.onpointermove = this.onpointerup = null; // Clear event handlers
+        this.onpointermove = this.onpointerup = null;
       };
 
       return false;
@@ -336,32 +349,33 @@
 
         playSpin(false); // Stop auto-rotate
         rouletteButton.disabled = true; // Disable button during spin
-        document.onpointerdown = null; // Temporarily disable drag interactions
-        clearInterval(odrag.timer); // Ensure no ongoing drag decay animation
+        document.onpointerdown = null; // Temporarily disable drag
 
-        // Choose a random target item
+        // Calculate a random target item
         var targetIndex = Math.floor(Math.random() * aEle.length);
         var rotationPerItem = 360 / aEle.length;
 
+        // Calculate the current visual rotation of the carousel based on tX
+        var currentVisualRotation = tX % 360;
+        if (currentVisualRotation < 0) currentVisualRotation += 360;
+
         // Calculate the target rotation to bring the chosen item to the front.
-        // Add multiple full rotations (e.g., 5 to 9) to make it spin faster and then land.
-        var fullSpins = 5 + Math.floor(Math.random() * 5); // 5 to 9 extra spins
-        var targetRotationValue = -((targetIndex * rotationPerItem) + (360 * fullSpins));
+        // The items are at i * rotationPerItem. To bring item 'targetIndex' to the front (0 degrees),
+        // we need to rotate the carousel by -(targetIndex * rotationPerItem).
+        // Add multiple full rotations (e.g., 5 to 10) to make it spin.
+        var targetRotationValue = -((targetIndex * rotationPerItem) + (360 * (5 + Math.floor(Math.random() * 5)))); // Spin 5-9 extra times
 
         // Apply transition and new transform to odrag
-        odrag.style.transition = 'transform 3s cubic-bezier(0.25, 0.1, 0.25, 1)'; // Faster spin duration, smooth ease-out
-        tX = targetRotationValue; // Update tX for the new rotation
+        odrag.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)'; // Smooth ease-out
+        tX = targetRotationValue; // Update tX for future drag interactions
         applyTranform(odrag); // Apply the new transform
 
-        // Re-enable interactions and auto-rotate after transition completes
+        // Re-enable interactions and auto-rotate after transition
         odrag.addEventListener('transitionend', function handler() {
           odrag.removeEventListener('transitionend', handler);
           rouletteButton.disabled = false; // Re-enable button
-
-          // Re-attach pointerdown event handler for drag
-          document.onpointerdown = function (e) {
+          document.onpointerdown = function (e) { /* re-add drag functionality */
             clearInterval(odrag.timer);
-            playSpin(false); // Pause auto-spin during manual drag
             e = e || window.event;
             var sX = e.clientX,
                 sY = e.clientY;
@@ -386,10 +400,11 @@
                 tX += desX * 0.1;
                 tY += desY * 0.1;
                 applyTranform(odrag);
+                playSpin(false); // Pause auto-spin during manual adjustment decay
                 if (Math.abs(desX) < 0.5 && Math.abs(desY) < 0.5) {
                   clearInterval(odrag.timer);
                   if (autoRotate) {
-                    playSpin(true);
+                    playSpin(true); // Resume auto-spin after manual adjustment decay
                   }
                 }
               }, 17);
@@ -398,9 +413,9 @@
 
             return false;
           };
-          odrag.style.transition = 'none'; // Remove transition for normal drag behavior
+          odrag.style.transition = 'none'; // Remove transition for normal drag
           if (autoRotate) {
-            playSpin(true); // Resume auto-rotate if it was enabled
+            playSpin(true); // Resume auto-rotate
           }
         });
       });
