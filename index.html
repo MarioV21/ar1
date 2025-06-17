@@ -368,6 +368,7 @@
         // Apply transition and new transform to odrag
         odrag.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)'; // Smooth ease-out
         tX = targetRotationValue; // Update tX for future drag interactions
+        // Keep tY constant during roulette spin to prevent tilting sideways
         applyTranform(odrag); // Apply the new transform
 
         // Re-enable interactions and auto-rotate after transition
